@@ -49,12 +49,35 @@ public class ThreadedSearch<T> implements Searcher<T>, Runnable {
          * threads, wait for them to all terminate, and then return the answer
          * in the shared `Answer` instance.
          */
+       try {
+         Answer answer = new Answer();
+         int searchIncrement = list.size()/numThreads;
+
+         Thread threads[] = new Thread[numThreads];
+         for(int i=0; i<numThreads; i++) {
+           threads[i] = new Thread(new ThreadedSearch<T>(target, list, i*searchIncrement, (i+1)*searchIncrement, answer));
+           threads[i].start();
+          }
+
+          for (int i=0; i<numThreads; ++i) {
+           threads[i].join();
+          }
+
+          return answer.getAnswer();
+
+        } catch(InterruptedException ie) {
+         System.out.println(ie);
+        }
+
         return false;
     }
 
     public void run() {
-        // Delete this `throw` when you actually implement this method.
-        throw new UnsupportedOperationException();
+        for(int j = begin; this.begin < this.end; j++) {
+          if(target.equals(list.get(j))) {
+            answer.setAnswer(true);
+          }
+        }
     }
 
     private class Answer {
